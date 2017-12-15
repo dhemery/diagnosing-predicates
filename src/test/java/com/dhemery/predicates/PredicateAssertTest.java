@@ -1,8 +1,8 @@
 package com.dhemery.predicates;
 
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
+import static com.dhemery.predicates.PredicateAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -20,10 +20,5 @@ public class PredicateAssertTest {
         }
 
         fail("should have failed");
-    }
-
-    private void assertThat(String errorMessage, boolean assertion) {
-        if(assertion) return;
-        throw new AssertionFailedError(errorMessage);
     }
 }
