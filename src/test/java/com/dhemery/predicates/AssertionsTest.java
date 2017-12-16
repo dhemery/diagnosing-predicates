@@ -1,10 +1,12 @@
 package com.dhemery.predicates;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.dhemery.predicates.Assertions.assertThat;
@@ -58,19 +60,46 @@ public class AssertionsTest {
         @Test
         public void
         returnsWithoutThrowingIfSubjectMatchesPredicate() {
-            assertThat("non-null", Objects::nonNull, Function.identity());
+            Function<String, String> diagnoser = s -> String.format("Subject <%s>", s);
+
+            assertThat("non-null", Objects::nonNull, diagnoser);
         }
 
         @Test
         public void
-        throwsWithErrorReportIfSubjectDoesNotMatchPredicate() {
-            String actual = "non-null";
-            Function<String, String> diagnoser = a -> "<<<" + a + ">>>";
+        throwsWithDiagnosisIfSubjectDoesNotMatchPredicate() {
+            String nonNullSubject = "non-null";
+            Function<String, String> diagnoser = s -> String.format("Subject <%s>", s);
 
-            Executable assertion = () -> assertThat(actual, Objects::isNull, diagnoser);
+            Executable assertion = () -> assertThat(nonNullSubject, Objects::isNull, diagnoser);
 
             AssertionError thrown = assertThrows(AssertionError.class, assertion);
-            assertEquals(diagnoser.apply(actual), thrown.getMessage());
+            assertEquals(diagnoser.apply(nonNullSubject), thrown.getMessage());
+        }
+    }
+
+    @Nested
+    public class AssertSelfDescribingPredicateWithDiagnoser {
+        @Test
+        public void
+        returnsWithoutThrowingIfSubjectMatchesPredicate() {
+            SelfDescribingPredicate<String> isEmptyString = SelfDescribingPredicate.of(String::isEmpty, "an empty string");
+            BiFunction<String, String, String> diagnoser = (e, a) -> String.format("Expected <%s>, Actual <%s> ", e, a);
+
+            assertThat("", isEmptyString, diagnoser);
+        }
+
+        @Test
+        public void
+        throwsWithExpectationAndDiagnosisIfSubjectDoesNotMatchPredicate() {
+            String nonEmptySubject = "non-empty";
+            SelfDescribingPredicate<String> isEmptyString = SelfDescribingPredicate.of(String::isEmpty, "an empty string");
+            BiFunction<String, String, String> diagnoser = (e, a) -> String.format("Expected <%s>, Actual <%s> ", e, a);
+
+            Executable assertion = () -> assertThat(nonEmptySubject, isEmptyString, diagnoser);
+
+            AssertionError thrown = assertThrows(AssertionError.class, assertion);
+            assertEquals(diagnoser.apply(isEmptyString.description(), nonEmptySubject), thrown.getMessage());
         }
     }
 }
