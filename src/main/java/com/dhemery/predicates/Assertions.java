@@ -34,8 +34,7 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
-     * If the assertion fails,
-     * this method throws an {@code AssertionError}
+     * If the assertion fails, this method constructs an error message
      * that describes the context and the subject.
      *
      * @param context   the context of the assertion
@@ -56,11 +55,9 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
-     * If the assertion fails,
-     * this method throws an {@code AssertionError}
-     * with an error message
-     * produced by applying the formatter
-     * to the mismatching subject.
+     * If the assertion fails, this method constructs an error message
+     * by applying the formatter
+     * to the subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
@@ -75,16 +72,15 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
-     * If the assertion fails,
-     * this method throws an {@code AssertionError}
-     * with an error message
-     * produced by applying the formatter
-     * to the predicate and the mismatching subject.
+     * If the assertion fails, this method constructs an error message
+     * by applying the formatter
+     * to the predicate and the subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
      * @param formatter the function to apply to describe mismatches
      * @param <T>       the type of the subject
+     * @param <P>       the type of the predicate
      * @throws AssertionError if the assertion fails
      */
     public static <T, P extends Predicate<? super T>>
@@ -95,9 +91,9 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
-     * If the assertion fails,
-     * this method throws an {@code AssertionError}
-     * that describes the predicate and the subject.
+     * If the assertion fails, this method constructs an error message
+     * that describes
+     * the predicate and the subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
@@ -116,10 +112,9 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
-     * If the assertion fails,
-     * this method throws an {@code AssertionError}
-     * with the predicate's descriptions
-     * of itself and the mismatching subject.
+     * If the assertion fails, this method constructs an error message
+     * that describes
+     * the predicate and the predicates's diagnosis of the subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject and to describe mismatches
