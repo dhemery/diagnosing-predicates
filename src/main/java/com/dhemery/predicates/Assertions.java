@@ -4,10 +4,18 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.lang.String.format;
+
 /**
  * Methods for asserting conditions in tests.
  */
 public class Assertions {
+    private static final String LINE_PREFIX_FORMAT = "%n%8s: ";
+    public static final String EXPECTED = format(LINE_PREFIX_FORMAT, "Expected");
+    public static final String BUT_WAS = format(LINE_PREFIX_FORMAT, "But was");
+    public static final String BUT = format(LINE_PREFIX_FORMAT, "But");
+    public static final String WAS = format(LINE_PREFIX_FORMAT, "Was");
+
     /**
      * Asserts that the value is {@code true}.
      * If the assertion fails,
@@ -37,62 +45,88 @@ public class Assertions {
      */
     public static <T> void assertThat(String context, T subject, Predicate<? super T> predicate) {
         if (predicate.test(subject)) return;
-        throw new AssertionError(context);
+        String message = new StringBuilder()
+                .append(context)
+                .append(WAS).append(subject)
+                .toString();
+        throw new AssertionError(message);
     }
 
     /**
      * Asserts that the subject matches the predicate.
      * If the assertion fails,
      * this method throws an {@code AssertionError}
-     * with the diagnoser's description
-     * of the result.
+     * with an error message
+     * produced by applying the formatter
+     * to the mismatching subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
-     * @param diagnoser the function to apply to diagnose the subject if it mismatches the predicate
+     * @param formatter the function to apply to describe the mismatch
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
-    public static <T> void assertThat(T subject, Predicate<? super T> predicate, Function<? super T, String> diagnoser) {
+    public static <T> void assertThat(T subject, Predicate<? super T> predicate, Function<? super T, String> formatter) {
         if (predicate.test(subject)) return;
-        throw new AssertionError(diagnoser.apply(subject));
+        throw new AssertionError(formatter.apply(subject));
     }
 
     /**
      * Asserts that the subject matches the predicate.
      * If the assertion fails,
      * this method throws an {@code AssertionError}
-     * with the diagnoser's description
-     * of the expectation and the result.
+     * that describes the predicate and the subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
-     * @param diagnoser the function to apply to diagnose the subject if it mismatches the predicate
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
-    public static <T> void assertThat(T subject, SelfDescribingPredicate<? super T> predicate, BiFunction<String, ? super T, String> diagnoser) {
+    public static <T> void assertThat(T subject, SelfDescribingPredicate<? super T> predicate) {
         if (predicate.test(subject)) return;
-        throw new AssertionError(diagnoser.apply(predicate.description(), subject));
+        String message = new StringBuilder()
+                .append(EXPECTED).append(predicate.description())
+                .append(BUT_WAS).append(subject)
+                .toString();
+        throw new AssertionError(message);
     }
 
     /**
      * Asserts that the subject matches the predicate.
      * If the assertion fails,
      * this method throws an {@code AssertionError}
-     * with the predicate's description
-     * of the expectation and the result.
+     * with an error message
+     * produced by applying the formatter
+     * to the predicate's description and the mismatching subject.
      *
      * @param subject   the value to test
-     * @param predicate tests the subject and diagnoses failures
+     * @param predicate the predicate to apply to test the subject
+     * @param formatter the function to apply to describe mismatches
+     * @param <T>       the type of the subject
+     * @throws AssertionError if the assertion fails
+     */
+    public static <T> void assertThat(T subject, SelfDescribingPredicate<? super T> predicate, BiFunction<String, ? super T, String> formatter) {
+        if (predicate.test(subject)) return;
+        throw new AssertionError(formatter.apply(predicate.description(), subject));
+    }
+
+    /**
+     * Asserts that the subject matches the predicate.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * with the predicate's descriptions
+     * of itself and the mismatching subject.
+     *
+     * @param subject   the value to test
+     * @param predicate the predicate to apply to test the subject and to describe mismatches
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
     public static <T> void assertThat(T subject, DiagnosingPredicate<? super T> predicate) {
         if (predicate.test(subject)) return;
         String message = new StringBuffer()
-                .append("Expected: ").append(predicate.description()).append(System.lineSeparator())
-                .append("     But: ").append(predicate.diagnosisOf(subject))
+                .append(EXPECTED).append(predicate.description())
+                .append(BUT).append(predicate.diagnosisOf(subject))
                 .toString();
         throw new AssertionError(message);
     }

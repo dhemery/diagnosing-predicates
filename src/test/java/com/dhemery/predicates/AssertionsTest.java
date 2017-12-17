@@ -8,7 +8,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.dhemery.predicates.Assertions.assertThat;
-import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -27,13 +26,13 @@ public class AssertionsTest {
 
         @Test
         public void
-        throwsWithContextIfValueIsFalse() {
-            String context = "context";
+        throwsWithMessageIfValueIsFalse() {
+            String errorMessage = "error message";
 
-            Executable failingAssertion = () -> assertThat(context, false);
+            Executable failingAssertion = () -> assertThat(errorMessage, false);
 
             AssertionError thrown = assertThrows(AssertionError.class, failingAssertion);
-            assertEquals(context, thrown.getMessage());
+            assertEquals(errorMessage, thrown.getMessage());
         }
     }
 
@@ -45,21 +44,22 @@ public class AssertionsTest {
             assertThat("context", 1, t -> true);
         }
 
-        // TODO: Error message should describe context and actual
         @Test
         public void
-        throwsWithContextIfSubjectDoesNotMatchPredicate() {
+        throwsWithContextAndSubjectIfSubjectDoesNotMatchPredicate() {
             String context = "context";
+            int subject = 1;
 
-            Executable assertion = () -> assertThat(context, 1, t -> false);
+            Executable assertion = () -> assertThat(context, subject, t -> false);
 
             AssertionError thrown = assertThrows(AssertionError.class, assertion);
-            assertEquals(context, thrown.getMessage());
+            assertStartsWith(context, thrown.getMessage());
+            assertEndsWith("\n     Was: " + subject, thrown.getMessage());
         }
     }
 
     @Nested
-    public class AssertPredicateWithDiagnoser {
+    public class AssertPredicateWithFormatter {
         @Test
         public void
         returnsWithoutThrowingIfSubjectMatchesPredicate() {
@@ -68,14 +68,38 @@ public class AssertionsTest {
 
         @Test
         public void
-        throwsWithDiagnosisIfSubjectDoesNotMatchPredicate() {
+        throwsWithFormattedSubjectIfSubjectDoesNotMatchPredicate() {
             int subject = 1;
-            Function<Integer, String> diagnoser = actual -> format("was %d", actual);
+            Function<Integer, String> mismatchFormatter = s -> "formatted subject";
 
-            Executable assertion = () -> assertThat(subject, t -> false, diagnoser);
+            Executable assertion = () -> assertThat(subject, t -> false, mismatchFormatter);
 
             AssertionError thrown = assertThrows(AssertionError.class, assertion);
-            assertEquals(diagnoser.apply(subject), thrown.getMessage());
+            assertEquals(mismatchFormatter.apply(subject), thrown.getMessage());
+        }
+    }
+
+    @Nested
+    public class AssertSelfDescribingPredicate {
+        @Test
+        public void
+        returnsWithoutThrowingIfSubjectMatchesPredicate() {
+            SelfDescribingPredicate<Integer> matchingPredicate = SelfDescribingPredicate.of(t -> true, "matches");
+
+            assertThat(1, matchingPredicate);
+        }
+
+        @Test
+        public void
+        throwsWithExpectationAndSubjectIfSubjectDoesNotMatchPredicate() {
+            int subject = 1;
+            SelfDescribingPredicate<Integer> mismatchingPredicate = SelfDescribingPredicate.of(t -> false, "mismatches");
+
+            Executable assertion = () -> assertThat(subject, mismatchingPredicate);
+
+            AssertionError thrown = assertThrows(AssertionError.class, assertion);
+            assertStartsWith("\nExpected: " + mismatchingPredicate.description(), thrown.getMessage());
+            assertEndsWith(" But was: " + subject, thrown.getMessage());
         }
     }
 
@@ -91,15 +115,15 @@ public class AssertionsTest {
 
         @Test
         public void
-        throwsWithExpectationAndDiagnosisIfSubjectDoesNotMatchPredicate() {
+        throwsWithFormattedExpectationAndSubjectIfSubjectDoesNotMatchPredicate() {
             int subject = 1;
             SelfDescribingPredicate<Integer> mismatchingPredicate = SelfDescribingPredicate.of(t -> false, "mismatches");
-            BiFunction<String, Integer, String> diagnoser = (expectation, actual) -> format("expected %s but was %d ", expectation, actual);
+            BiFunction<String, Integer, String> formatter = (e, s) -> "formatted expectation and subject";
 
-            Executable assertion = () -> assertThat(subject, mismatchingPredicate, diagnoser);
+            Executable assertion = () -> assertThat(subject, mismatchingPredicate, formatter);
 
             AssertionError thrown = assertThrows(AssertionError.class, assertion);
-            assertEquals(diagnoser.apply(mismatchingPredicate.description(), subject), thrown.getMessage());
+            assertEquals(formatter.apply(mismatchingPredicate.description(), subject), thrown.getMessage());
         }
     }
 
@@ -115,24 +139,31 @@ public class AssertionsTest {
 
         @Test
         public void
-        throwsWithExpectationAndDiagnosisIfSubjectDoesNotMatchPredicate() {
+        throwsWithExpectationAndFormattedSubjectIfSubjectDoesNotMatchPredicate() {
             int subject = 1;
-            DiagnosingPredicate<Integer> mismatchingPredicate = DiagnosingPredicate.of(t -> false, "mismatches", actual -> format("was %d", actual));
+            DiagnosingPredicate<Integer> mismatchingPredicate = DiagnosingPredicate.of(t -> false, "mismatches", s -> "formatted subject");
 
             Executable assertion = () -> assertThat(subject, mismatchingPredicate);
 
             AssertionError thrown = assertThrows(AssertionError.class, assertion);
-            assertContains(thrown.getMessage(), mismatchingPredicate.description(), "description");
-            assertContains(thrown.getMessage(), mismatchingPredicate.diagnosisOf(subject), "diagnosis");
+            assertStartsWith("\nExpected: " + mismatchingPredicate.description(), thrown.getMessage());
+            assertEndsWith("     But: " + mismatchingPredicate.diagnosisOf(subject), thrown.getMessage());
         }
     }
 
-    private static void assertContains(String string, String substring, String context) {
-        if (string.contains(substring)) return;
+    private void assertStartsWith(String prefix, String string) {
+        if (string.startsWith(prefix)) return;
         String message = new StringBuilder()
-                .append(context).append(System.lineSeparator())
-                .append("Expected a string containing \"").append(substring).append('"').append(System.lineSeparator())
-                .append("But was \"").append(string).append('"').toString();
+                .append("Expected prefix: \"").append(prefix).append('"').append(System.lineSeparator())
+                .append("But was: \"").append(string).append('"').toString();
+        throw new AssertionError(message);
+    }
+
+    private void assertEndsWith(String suffix, String string) {
+        if (string.endsWith(suffix)) return;
+        String message = new StringBuilder()
+                .append("Expected suffix: \"").append(suffix).append('"').append(System.lineSeparator())
+                .append("But was: \"").append(string).append('"').toString();
         throw new AssertionError(message);
     }
 }
