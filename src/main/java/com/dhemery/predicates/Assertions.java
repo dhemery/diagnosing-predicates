@@ -3,11 +3,13 @@ package com.dhemery.predicates;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 
 /**
- * Methods for asserting conditions in tests.
+ * Methods for asserting conditions.
  */
 public class Assertions {
     private static final String LINE_PREFIX_FORMAT = "%n%8s: ";
@@ -45,11 +47,7 @@ public class Assertions {
     public static <T>
     void assertThat(String context, T subject, Predicate<? super T> predicate) {
         if (predicate.test(subject)) return;
-        String message = new StringBuilder()
-                .append(context)
-                .append(WAS).append(subject)
-                .toString();
-        throw new AssertionError(message);
+        throw new AssertionError(errorMessage(context, WAS, subject));
     }
 
     /**
@@ -103,11 +101,7 @@ public class Assertions {
     public static <T>
     void assertThat(T subject, SelfDescribingPredicate<? super T> predicate) {
         if (predicate.test(subject)) return;
-        String message = new StringBuilder()
-                .append(EXPECTED).append(predicate.description())
-                .append(BUT_WAS).append(subject)
-                .toString();
-        throw new AssertionError(message);
+        throw new AssertionError(errorMessage(EXPECTED, predicate.description(), BUT_WAS, subject));
     }
 
     /**
@@ -124,10 +118,10 @@ public class Assertions {
     public static <T>
     void assertThat(T subject, DiagnosingPredicate<? super T> predicate) {
         if (predicate.test(subject)) return;
-        String message = new StringBuffer()
-                .append(EXPECTED).append(predicate.description())
-                .append(BUT).append(predicate.diagnosisOf(subject))
-                .toString();
-        throw new AssertionError(message);
+        throw new AssertionError(errorMessage(EXPECTED, predicate.description(), BUT, predicate.diagnosisOf(subject)));
+    }
+
+    private static String errorMessage(Object... parts) {
+        return Stream.of(parts).map(Object::toString).collect(joining());
     }
 }
