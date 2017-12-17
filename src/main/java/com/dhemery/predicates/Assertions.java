@@ -62,7 +62,7 @@ public class Assertions {
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
-     * @param formatter the function to apply to describe the mismatch
+     * @param formatter the function to apply to describe mismatches
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
