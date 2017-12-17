@@ -1,3 +1,3 @@
-# Expression Kit
+# Diagnosing Predicates
 
-Expressive methods to compose conditions and evaluate them, immediately or by polling.
+Exploring how to use Predicates in assertions.
