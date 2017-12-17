@@ -45,7 +45,7 @@ public class AssertionsTest {
             assertThat("context", 1, t -> true);
         }
 
-        // TODO: Error message includes context and actual
+        // TODO: Error message should describe context and actual
         @Test
         public void
         throwsWithContextIfSubjectDoesNotMatchPredicate() {

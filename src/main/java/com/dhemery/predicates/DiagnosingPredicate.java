@@ -4,9 +4,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 // TODO: Is it meaningful to compose DiagnosingPredicates (via and(), or(), and negate())?
+
 /**
  * A self-describing predicate that can diagnose mismatching inputs.
-s *
+ * s *
+ *
  * @param <T> the type of the input to the predicate
  */
 public interface DiagnosingPredicate<T> extends SelfDescribingPredicate<T> {
@@ -26,6 +28,7 @@ public interface DiagnosingPredicate<T> extends SelfDescribingPredicate<T> {
      * @param description the description of the underlying predicate
      * @param diagnoser   the function to apply to diagnose mismatching inputs
      * @param <T>         the type of the input to the predicate
+     * @return the diagnosing predicate
      */
     static <T> DiagnosingPredicate<T> of(Predicate<T> predicate, String description, Function<? super T, String> diagnoser) {
         return of(SelfDescribingPredicate.of(predicate, description), diagnoser);
@@ -37,6 +40,7 @@ public interface DiagnosingPredicate<T> extends SelfDescribingPredicate<T> {
      * @param predicate the underlying predicate
      * @param diagnoser the function to apply to diagnose mismatching inputs
      * @param <T>       the type of the input to the predicate
+     * @return the diagnosing predicate
      */
     static <T> DiagnosingPredicate<T> of(SelfDescribingPredicate<T> predicate, Function<? super T, String> diagnoser) {
         return new DiagnosingPredicate<T>() {

@@ -4,9 +4,15 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Methods for asserting conditions in tests.
+ */
 public class Assertions {
     /**
      * Asserts that the value is {@code true}.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * with the given error message.
      *
      * @param errorMessage the error message to include in the {@code AssertionError}
      * @param value        the value to test
@@ -19,6 +25,9 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * that describes the context and the subject.
      *
      * @param context   the context of the assertion
      * @param subject   the value to test
@@ -33,6 +42,10 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * with the diagnoser's description
+     * of the result.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
@@ -47,6 +60,10 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * with the diagnoser's description
+     * of the expectation and the result.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
@@ -61,6 +78,10 @@ public class Assertions {
 
     /**
      * Asserts that the subject matches the predicate.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * with the predicate's description
+     * of the expectation and the result.
      *
      * @param subject   the value to test
      * @param predicate tests the subject and diagnoses failures

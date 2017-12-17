@@ -54,6 +54,11 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
+javadoc {
+    options.with {
+        links "https://docs.oracle.com/javase/9/docs/api/"
+    }
+}
 
 test {
     testLogging {
