@@ -8,7 +8,7 @@ public class Assertions {
     /**
      * Asserts that the value is {@code true}.
      *
-     * @param errorMessage the error message for the {@code AssertionError}
+     * @param errorMessage the error message to include in the {@code AssertionError}
      * @param value        the value to test
      * @throws AssertionError if the assertion fails
      */
@@ -22,7 +22,7 @@ public class Assertions {
      *
      * @param context   the context of the assertion
      * @param subject   the value to test
-     * @param predicate tests the subject
+     * @param predicate the predicate to apply to test the subject
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
@@ -35,8 +35,8 @@ public class Assertions {
      * Asserts that the subject matches the predicate.
      *
      * @param subject   the value to test
-     * @param predicate tests the subject
-     * @param diagnoser diagnoses the subject if the assertion fails
+     * @param predicate the predicate to apply to test the subject
+     * @param diagnoser the function to apply to diagnose the subject if it mismatches the predicate
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
@@ -49,13 +49,30 @@ public class Assertions {
      * Asserts that the subject matches the predicate.
      *
      * @param subject   the value to test
-     * @param predicate tests the subject
-     * @param diagnoser describes the predicate and diagnoses the subject if the assertion fails
+     * @param predicate the predicate to apply to test the subject
+     * @param diagnoser the function to apply to diagnose the subject if it mismatches the predicate
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
     public static <T> void assertThat(T subject, SelfDescribingPredicate<? super T> predicate, BiFunction<String, ? super T, String> diagnoser) {
         if (predicate.test(subject)) return;
         throw new AssertionError(diagnoser.apply(predicate.description(), subject));
+    }
+
+    /**
+     * Asserts that the subject matches the predicate.
+     *
+     * @param subject   the value to test
+     * @param predicate tests the subject and diagnoses failures
+     * @param <T>       the type of the subject
+     * @throws AssertionError if the assertion fails
+     */
+    public static <T> void assertThat(T subject, DiagnosingPredicate<? super T> predicate) {
+        if (predicate.test(subject)) return;
+        String message = new StringBuffer()
+                .append("Expected: ").append(predicate.description()).append(System.lineSeparator())
+                .append("     But: ").append(predicate.diagnosisOf(subject))
+                .toString();
+        throw new AssertionError(message);
     }
 }
