@@ -26,7 +26,8 @@ public class Assertions {
      * @param value        the value to test
      * @throws AssertionError if the assertion fails
      */
-    public static void assertThat(String errorMessage, boolean value) {
+    public static void
+    assertThat(String errorMessage, boolean value) {
         if (value) return;
         throw new AssertionError(errorMessage);
     }
@@ -43,7 +44,8 @@ public class Assertions {
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
-    public static <T> void assertThat(String context, T subject, Predicate<? super T> predicate) {
+    public static <T> void
+    assertThat(String context, T subject, Predicate<? super T> predicate) {
         if (predicate.test(subject)) return;
         String message = new StringBuilder()
                 .append(context)
@@ -75,29 +77,9 @@ public class Assertions {
      * Asserts that the subject matches the predicate.
      * If the assertion fails,
      * this method throws an {@code AssertionError}
-     * that describes the predicate and the subject.
-     *
-     * @param subject   the value to test
-     * @param predicate the predicate to apply to test the subject
-     * @param <T>       the type of the subject
-     * @throws AssertionError if the assertion fails
-     */
-    public static <T> void assertThat(T subject, SelfDescribingPredicate<? super T> predicate) {
-        if (predicate.test(subject)) return;
-        String message = new StringBuilder()
-                .append(EXPECTED).append(predicate.description())
-                .append(BUT_WAS).append(subject)
-                .toString();
-        throw new AssertionError(message);
-    }
-
-    /**
-     * Asserts that the subject matches the predicate.
-     * If the assertion fails,
-     * this method throws an {@code AssertionError}
      * with an error message
      * produced by applying the formatter
-     * to the predicate's description and the mismatching subject.
+     * to the predicate and the mismatching subject.
      *
      * @param subject   the value to test
      * @param predicate the predicate to apply to test the subject
@@ -105,9 +87,31 @@ public class Assertions {
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
-    public static <T> void assertThat(T subject, SelfDescribingPredicate<? super T> predicate, BiFunction<String, ? super T, String> formatter) {
+    public static <T, P extends Predicate<? super T>>
+    void assertThat(T subject, P predicate, BiFunction<? super P, ? super T, String> formatter) {
         if (predicate.test(subject)) return;
-        throw new AssertionError(formatter.apply(predicate.description(), subject));
+        throw new AssertionError(formatter.apply(predicate, subject));
+    }
+
+    /**
+     * Asserts that the subject matches the predicate.
+     * If the assertion fails,
+     * this method throws an {@code AssertionError}
+     * that describes the predicate and the subject.
+     *
+     * @param subject   the value to test
+     * @param predicate the predicate to apply to test the subject
+     * @param <T>       the type of the subject
+     * @throws AssertionError if the assertion fails
+     */
+    public static <T> void
+    assertThat(T subject, SelfDescribingPredicate<? super T> predicate) {
+        if (predicate.test(subject)) return;
+        String message = new StringBuilder()
+                .append(EXPECTED).append(predicate.description())
+                .append(BUT_WAS).append(subject)
+                .toString();
+        throw new AssertionError(message);
     }
 
     /**
@@ -122,7 +126,8 @@ public class Assertions {
      * @param <T>       the type of the subject
      * @throws AssertionError if the assertion fails
      */
-    public static <T> void assertThat(T subject, DiagnosingPredicate<? super T> predicate) {
+    public static <T>
+    void assertThat(T subject, DiagnosingPredicate<? super T> predicate) {
         if (predicate.test(subject)) return;
         String message = new StringBuffer()
                 .append(EXPECTED).append(predicate.description())

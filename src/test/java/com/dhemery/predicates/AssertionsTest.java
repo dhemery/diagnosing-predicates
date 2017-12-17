@@ -6,14 +6,18 @@ import org.junit.jupiter.api.function.Executable;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.dhemery.predicates.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AssertionsTest {
-    private static final Function<Integer, String> THROWING_DIAGNOSER = subject -> {
-        throw new AssertionError("Diagnoser unexpectedly applied to subject " + subject);
+    private static final Function<Integer, String> THROWING_SUBJECT_FORMATTER = s -> {
+        throw new AssertionError("Subject formatter unexpectedly applied");
+    };
+    private static final BiFunction<Predicate<? super Integer>, Integer, String> THROWING_PREDICATE_AND_SUBJECT_FORMATTER = (p, s) -> {
+        throw new AssertionError("Predicate+subject formatter unexpectedly applied");
     };
 
     @Nested
@@ -59,16 +63,16 @@ public class AssertionsTest {
     }
 
     @Nested
-    public class AssertPredicateWithFormatter {
+    public class AssertPredicateWithSubjectFormatter {
         @Test
         public void
         returnsWithoutThrowingIfSubjectMatchesPredicate() {
-            assertThat(1, t -> true, THROWING_DIAGNOSER);
+            assertThat(1, t -> true, THROWING_SUBJECT_FORMATTER);
         }
 
         @Test
         public void
-        throwsWithFormattedSubjectIfSubjectDoesNotMatchPredicate() {
+        throwsWithFormattedResultIfSubjectDoesNotMatchPredicate() {
             int subject = 1;
             Function<Integer, String> mismatchFormatter = s -> "formatted subject";
 
@@ -80,7 +84,30 @@ public class AssertionsTest {
     }
 
     @Nested
+    public class AssertPredicateWithPredicateSubjectFormatter {
+        @Test
+        public void
+        returnsWithoutThrowingIfSubjectMatchesPredicate() {
+            assertThat(1, t -> true, THROWING_PREDICATE_AND_SUBJECT_FORMATTER);
+        }
+
+        @Test
+        public void
+        throwsWithFormattedResultIfSubjectDoesNotMatchPredicate() {
+            int subject = 1;
+            Predicate<Integer> mismatchingPredicate = SelfDescribingPredicate.of(t -> false, "mismatches");
+            BiFunction<Predicate<Integer>, Integer, String> formatter = (p, s) -> "formatted predicate and subject";
+
+            Executable assertion = () -> assertThat(subject, mismatchingPredicate, formatter);
+
+            AssertionError thrown = assertThrows(AssertionError.class, assertion);
+            assertEquals(formatter.apply(mismatchingPredicate, subject), thrown.getMessage());
+        }
+    }
+
+    @Nested
     public class AssertSelfDescribingPredicate {
+
         @Test
         public void
         returnsWithoutThrowingIfSubjectMatchesPredicate() {
@@ -101,30 +128,7 @@ public class AssertionsTest {
             assertStartsWith("\nExpected: " + mismatchingPredicate.description(), thrown.getMessage());
             assertEndsWith(" But was: " + subject, thrown.getMessage());
         }
-    }
 
-    @Nested
-    public class AssertSelfDescribingPredicateWithDiagnoser {
-        @Test
-        public void
-        returnsWithoutThrowingIfSubjectMatchesPredicate() {
-            SelfDescribingPredicate<Integer> matchingPredicate = SelfDescribingPredicate.of(t -> true, "matches");
-
-            assertThat(1, matchingPredicate, THROWING_DIAGNOSER);
-        }
-
-        @Test
-        public void
-        throwsWithFormattedExpectationAndSubjectIfSubjectDoesNotMatchPredicate() {
-            int subject = 1;
-            SelfDescribingPredicate<Integer> mismatchingPredicate = SelfDescribingPredicate.of(t -> false, "mismatches");
-            BiFunction<String, Integer, String> formatter = (e, s) -> "formatted expectation and subject";
-
-            Executable assertion = () -> assertThat(subject, mismatchingPredicate, formatter);
-
-            AssertionError thrown = assertThrows(AssertionError.class, assertion);
-            assertEquals(formatter.apply(mismatchingPredicate.description(), subject), thrown.getMessage());
-        }
     }
 
     @Nested
@@ -132,7 +136,7 @@ public class AssertionsTest {
         @Test
         public void
         returnsWithoutThrowingIfSubjectMatchesPredicate() {
-            DiagnosingPredicate<Integer> matchingPredicate = DiagnosingPredicate.of(t -> true, "matches", THROWING_DIAGNOSER);
+            DiagnosingPredicate<Integer> matchingPredicate = DiagnosingPredicate.of(t -> true, "matches", THROWING_SUBJECT_FORMATTER);
 
             assertThat(1, matchingPredicate);
         }
