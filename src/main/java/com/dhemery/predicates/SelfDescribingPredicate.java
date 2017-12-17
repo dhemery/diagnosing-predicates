@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 public interface SelfDescribingPredicate<T> extends Predicate<T> {
     /**
      * Returns a description of the predicate.
+     *
      * @return a description of the predicate
      */
     String description();
